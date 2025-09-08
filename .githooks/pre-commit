@@ -1,0 +1,28 @@
+#!/bin/bash
+
+MAX_SIZE=26214400  # 25 MB
+RED='\033[0;31m'
+NC='\033[0m'
+
+too_large=0
+
+echo "🛡️  Überprüfe Dateigrößen (max $MAX_SIZE Bytes = $((MAX_SIZE / 1024 / 1024)) MB)..."
+
+for file in $(git diff --cached --name-only); do
+    if [ -f "$file" ]; then
+        size=$(stat -c%s "$file")
+        if [ "$size" -gt "$MAX_SIZE" ]; then
+            echo -e "${RED}❌ Datei '$file' ist zu groß: ${size} Bytes${NC}"
+            too_large=1
+        fi
+    fi
+done
+
+if [ "$too_large" -eq 1 ]; then
+    echo -e "${RED}❌ Commit abgebrochen. Bitte entferne zu große Dateien.${NC}"
+    exit 1
+fi
+
+echo "✅ Alle Dateigrößen sind in Ordnung."
+exit 0
+
